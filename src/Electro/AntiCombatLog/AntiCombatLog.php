@@ -19,6 +19,7 @@ class AntiCombatLog extends PluginBase implements Listener{
     public string $exitCombatMsg;
     public float $combatTime;
     public bool $quitKill;
+    public bool $banAllCommands;
 
     public function onEnable(): void
     {
@@ -31,7 +32,8 @@ class AntiCombatLog extends PluginBase implements Listener{
         $this->enteredCombatMsg = $this->getConfig()->get("EnterCombatMsg");
         $this->exitCombatMsg = $this->getConfig()->get("ExitCombatMsg");
         $this->combatTime = $this->getConfig()->get("CombatTime");
-        $this->quitKill = $this->getConfig()->get("QuitKill");
+        $this->quitKill = $this->getConfig()->get("KillOnLogout");
+        $this->banAllCommands = $this->getConfig()->get("BanAllCommands");
         $this->combatTask();
     }
 
@@ -54,11 +56,16 @@ class AntiCombatLog extends PluginBase implements Listener{
         }
     }
 
-    public function onChat(PlayerCommandPreprocessEvent $event)
+    public function onCommandPreprocess(PlayerCommandPreprocessEvent $event)
     {
         $player = $event->getPlayer();
         $msg = $event->getMessage();
         if (!isset($this->playersInCombat[$player->getName()])) return;
+        if ($this->banAllCommands)
+        {
+            $player->sendMessage($this->bannedCommandMsg);
+            $event->cancel();
+        }
         $msg = substr($msg, 1);
         $msg = explode(" ", $msg);
         if(!in_array($msg[0], $this->bannedCommands)) return;
@@ -69,7 +76,6 @@ class AntiCombatLog extends PluginBase implements Listener{
     public function onQuit(PlayerQuitEvent $event)
     {
         $player = $event->getPlayer();
-
         if (!isset($this->playersInCombat[$player->getName()])) return;
         if (!$this->quitKill) return;
         $player->kill();
@@ -96,5 +102,4 @@ class AntiCombatLog extends PluginBase implements Listener{
             }
         ), 20);
     }
-
 }
