@@ -6,9 +6,12 @@ KillOnLogout: true
 
 EnterCombatMsg: "§cYou are now in combat, do not log out or you will be killed."
 ExitCombatMsg: "§cYou are no longer in combat"
-BannedCommandMsg: "§cYou can not run this command while in combat"
+BannedCommandMsg: "§cYou can not execute this command while in combat"
 
-# The commands banned for players in combat
+# If true, players in combat will not be able to execute any commands
+BanAllCommands: false
+
+# The commands banned for players in combat (Not important if "BanAllCommands" = true)
 BannedCommands:
   - spawn
   - home
