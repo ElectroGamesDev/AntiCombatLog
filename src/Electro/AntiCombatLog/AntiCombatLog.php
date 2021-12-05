@@ -97,7 +97,7 @@ class AntiCombatLog extends PluginBase implements Listener{
                         $player = $this->getServer()->getPlayerExact($playerName);
                         if ($player instanceof Player)
                         {
-                            $player->sendMessage($this->exitCombatMsg);
+                            $player->sendMessage($this->exitCombatMs);
                         }
                     }
                 }
