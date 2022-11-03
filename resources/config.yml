@@ -1,6 +1,16 @@
 # The amount of time in seconds that the player is in combat for
 CombatTime: 10
 
+# If true, you will cause combat to be enabled on worlds set to "EnabledWorlds"
+EnableCombatWorlds: false
+
+# Here write the names of the worlds where you want the AntiCombatLog to be active (It only works if the option above is set to "true")
+EnabledWorlds:
+  - world
+  - MinaPvP
+  - Factions
+  - ZonePvP
+
 # If true, the player will be killed when they log out if they are in combat
 KillOnLogout: true
 
