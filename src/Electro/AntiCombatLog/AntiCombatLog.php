@@ -14,6 +14,7 @@ class AntiCombatLog extends PluginBase implements Listener{
 
     public array $playersInCombat = [];
     public array $bannedCommands = [];
+    public array $enabledWorlds = [];
     public string $bannedCommandMsg;
     public string $enteredCombatMsg;
     public string $exitCombatMsg;
@@ -21,11 +22,9 @@ class AntiCombatLog extends PluginBase implements Listener{
     public bool $quitKill;
     public bool $banAllCommands;
 
-    public function onEnable(): void
-    {
+    public function onEnable(): void{
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
-        foreach ($this->getConfig()->get("BannedCommands") as $cmd)
-        {
+        foreach ($this->getConfig()->get("BannedCommands") as $cmd){
             $this->bannedCommands[] = $cmd;
         }
         $this->bannedCommandMsg = $this->getConfig()->get("BannedCommandMsg");
@@ -34,11 +33,11 @@ class AntiCombatLog extends PluginBase implements Listener{
         $this->combatTime = $this->getConfig()->get("CombatTime");
         $this->quitKill = $this->getConfig()->get("KillOnLogout");
         $this->banAllCommands = $this->getConfig()->get("BanAllCommands");
+        $this->enabledWorlds = $this->getConfig()->get("Enabled-worlds");
         $this->combatTask();
     }
 
-    public function onDamage(EntityDamageByEntityEvent $event)
-    {
+    public function onDamage(EntityDamageByEntityEvent $event){
         $player = $event->getEntity();
         $damager = $event->getDamager();
 
@@ -46,23 +45,21 @@ class AntiCombatLog extends PluginBase implements Listener{
         if (!$player instanceof Player || !$damager instanceof Player) return;
         if ($player->isCreative() || $damager->isCreative()) return;
 
-        foreach ([$player, $damager] as $player)
-        {
-            if (!isset($this->playersInCombat[$player->getName()]))
-            {
-                $player->sendMessage($this->enteredCombatMsg);
+        foreach ([$player, $damager] as $player){
+            if(in_array($player->getWorld()->getFolderName(), $this->enabledWorlds)){
+                if(!isset($this->playersInCombat[$player->getName()])){
+                   $player->sendMessage($this->enteredCombatMsg);
+                }
+                $this->playersInCombat[$player->getName()] = $this->combatTime;
             }
-            $this->playersInCombat[$player->getName()] = $this->combatTime;
         }
     }
 
-    public function onCommandPreprocess(PlayerCommandPreprocessEvent $event)
-    {
+    public function onCommandPreprocess(PlayerCommandPreprocessEvent $event){
         $player = $event->getPlayer();
         $msg = $event->getMessage();
         if (!isset($this->playersInCombat[$player->getName()])) return;
-        if ($this->banAllCommands)
-        {
+        if ($this->banAllCommands){
             if (substr($msg, 0 ,1) != "/") return;
             $player->sendMessage($this->bannedCommandMsg);
             $event->cancel();
@@ -75,28 +72,23 @@ class AntiCombatLog extends PluginBase implements Listener{
         $player->sendMessage($this->bannedCommandMsg);
     }
 
-    public function onQuit(PlayerQuitEvent $event)
-    {
+    public function onQuit(PlayerQuitEvent $event){
         $player = $event->getPlayer();
         if (!isset($this->playersInCombat[$player->getName()])) return;
         if (!$this->quitKill) return;
         $player->kill();
     }
 
-    public function combatTask()
-    {
+    public function combatTask(){
         $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(
             function() {
-                foreach ($this->playersInCombat as $playerName => $time)
-                {
+                foreach ($this->playersInCombat as $playerName => $time){
                     $time--;
                     $this->playersInCombat[$playerName]--;
-                    if ($time <= 0)
-                    {
+                    if ($time <= 0){
                         unset($this->playersInCombat[$playerName]);
                         $player = $this->getServer()->getPlayerExact($playerName);
-                        if ($player instanceof Player)
-                        {
+                        if ($player instanceof Player){
                             $player->sendMessage($this->exitCombatMsg);
                         }
                     }
