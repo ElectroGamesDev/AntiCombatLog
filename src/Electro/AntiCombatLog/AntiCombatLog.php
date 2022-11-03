@@ -21,6 +21,7 @@ class AntiCombatLog extends PluginBase implements Listener{
     public float $combatTime;
     public bool $quitKill;
     public bool $banAllCommands;
+    public bool $enableCombatWorlds;
 
     public function onEnable(): void{
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -29,11 +30,12 @@ class AntiCombatLog extends PluginBase implements Listener{
         }
         $this->bannedCommandMsg = $this->getConfig()->get("BannedCommandMsg");
         $this->enteredCombatMsg = $this->getConfig()->get("EnterCombatMsg");
+        $this->enabledWorlds = $this->getConfig()->get("EnabledWorlds");
         $this->exitCombatMsg = $this->getConfig()->get("ExitCombatMsg");
         $this->combatTime = $this->getConfig()->get("CombatTime");
         $this->quitKill = $this->getConfig()->get("KillOnLogout");
         $this->banAllCommands = $this->getConfig()->get("BanAllCommands");
-        $this->enabledWorlds = $this->getConfig()->get("Enabled-worlds");
+        $this->enableCombatWorlds = $this->getConfig()->get("EnableCombatWorlds");
         $this->combatTask();
     }
 
@@ -41,19 +43,28 @@ class AntiCombatLog extends PluginBase implements Listener{
         $player = $event->getEntity();
         $damager = $event->getDamager();
 
-        if ($event->isCancelled()) return;
-        if (!$player instanceof Player || !$damager instanceof Player) return;
-        if ($player->isCreative() || $damager->isCreative()) return;
+        if($event->isCancelled()) return;
+        if(!$player instanceof Player || !$damager instanceof Player) return;
+        if($player->isCreative() || $damager->isCreative()) return;
 
-        foreach ([$player, $damager] as $player){
-            if(in_array($player->getWorld()->getFolderName(), $this->enabledWorlds)){
+        foreach([$player, $damager] as $player){
+            if($this->enableCombatWorlds){
+                if(in_array($player->getWorld()->getFolderName(), $this->enabledWorlds)){
+                    if(!isset($this->playersInCombat[$player->getName()])){
+                        
+                        $player->sendMessage($this->enteredCombatMsg);
+                    }
+                    $this->playersInCombat[$player->getName()] = $this->combatTime;
+                }
+            }else{
                 if(!isset($this->playersInCombat[$player->getName()])){
-                   $player->sendMessage($this->enteredCombatMsg);
+                    $player->sendMessage($this->enteredCombatMsg);
                 }
                 $this->playersInCombat[$player->getName()] = $this->combatTime;
             }
         }
     }
+
 
     public function onCommandPreprocess(PlayerCommandPreprocessEvent $event){
         $player = $event->getPlayer();
