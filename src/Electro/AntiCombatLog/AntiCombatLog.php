@@ -56,14 +56,13 @@ class AntiCombatLog extends PluginBase implements Listener{
         }
     }
 
-    public function onCommandPreprocess(PlayerCommandPreprocessEvent $event)
+    public function onCommandPreprocess(CommandEvent $event)
     {
         $player = $event->getPlayer();
-        $msg = $event->getMessage();
+        $msg = $event->getCommand();
         if (!isset($this->playersInCombat[$player->getName()])) return;
         if ($this->banAllCommands)
         {
-            if (substr($msg, 0 ,1) != "/") return;
             $player->sendMessage($this->bannedCommandMsg);
             $event->cancel();
             return;
