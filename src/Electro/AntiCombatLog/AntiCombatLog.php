@@ -37,6 +37,9 @@ class AntiCombatLog extends PluginBase implements Listener{
         $this->combatTask();
     }
 
+    /**
+     * @priority HIGHEST
+     */
     public function onDamage(EntityDamageByEntityEvent $event)
     {
         $player = $event->getEntity();
