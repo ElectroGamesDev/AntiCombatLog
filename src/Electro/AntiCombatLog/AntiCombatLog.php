@@ -8,7 +8,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\player\Player;
 use pocketmine\event\Listener;
 use pocketmine\scheduler\ClosureTask;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
+use pocketmine\event\server\CommandEvent;
 
 class AntiCombatLog extends PluginBase implements Listener{
 
@@ -58,7 +58,7 @@ class AntiCombatLog extends PluginBase implements Listener{
 
     public function onCommandPreprocess(CommandEvent $event)
     {
-        $player = $event->getPlayer();
+        $player = $event->getSender();
         $msg = $event->getCommand();
         if (!isset($this->playersInCombat[$player->getName()])) return;
         if ($this->banAllCommands)
@@ -67,11 +67,10 @@ class AntiCombatLog extends PluginBase implements Listener{
             $event->cancel();
             return;
         }
-        $msg = substr($msg, 1);
         $msg = explode(" ", $msg);
         if(!in_array($msg[0], $this->bannedCommands)) return;
+		$player->sendMessage($this->bannedCommandMsg);
         $event->cancel();
-        $player->sendMessage($this->bannedCommandMsg);
     }
 
     public function onQuit(PlayerQuitEvent $event)
